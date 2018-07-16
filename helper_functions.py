@@ -11,11 +11,14 @@ def rmse_log(y_actual, y_pred):
     return math.sqrt(mean_squared_error(np.log(y_pred), np.log(y_actual)))
 
 def rmse(y_actual, y_pred):
-    return math.sqrt(mean_squared_error(y_pred, y_actual))
+    return math.sqrt(mean_squared_error(y_actual, y_pred))
 
-def print_benchmark(y_actual, y_predicted):
+def print_benchmark(y_actual, y_predicted, log_transform = False):
     print('R2-score: %s' % r2_score(y_actual, y_predicted))
-    print('RMSE (log): %s' % rmse(y_actual, y_predicted))
+    if log_transform:
+        print('RMSE (log): %s' % rmse(np.log1p(y_actual), np.log1p(y_predicted)))
+    else:
+        print('RMSE (log): %s' % rmse(y_actual, y_predicted))
     
 def write_submission(df, pred):
     assert pred.max() > 1000, "Max is smaller than 1000!"
