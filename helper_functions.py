@@ -20,7 +20,10 @@ def print_benchmark(y_actual, y_predicted, log_transform = False):
     else:
         print('RMSE (log): %s' % rmse(y_actual, y_predicted))
     
-def write_submission(df, pred):
+def write_submission(pred, in_dollars=False):
+    df = pd.read_csv('data/test.csv')
+    if in_dollars == False:
+        pred = np.expm1(pred)
     assert pred.max() > 1000, "Max is smaller than 1000!"
     assert pred.min() > 0, "Min is smaller than 0!"
     submission = pd.DataFrame({'Id': df.Id, 'SalePrice': pred})
@@ -28,12 +31,19 @@ def write_submission(df, pred):
     submission.to_csv(file_path, index=False)
     print('File written to %s' % file_path)
     
-def draw_sanity_check(pred):
+def draw_sanity_check(pred, in_dollars = True):
+    if in_dollars == False:
+        pred = np.expm1(pred)
     train_df = pd.read_csv('data/train.csv')
     test_df = pd.read_csv('data/test.csv')
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6), sharey=True)
-    axes[0].scatter(train_df['GrLivArea'], train_df['SalePrice'], alpha=.4)
-    axes[0].set_title('Baseline')
-    axes[1].scatter(test_df['GrLivArea'], pred, alpha=.4)
-    axes[1].set_title('Prediction')
+    fig, ax = plt.subplots(1, figsize=(8, 6), sharey=True)
+    ax.scatter(train_df['GrLivArea'], train_df['SalePrice'], alpha=.4)
+    ax.set_title('Baseline vs Prediction')
+    ax.scatter(test_df['GrLivArea'], pred, alpha=.4)
+    print('Mean of Salesprice in Training-Data: %.2f' % train_df['SalePrice'].mean())
+    print('Mean of Salesprice in predictions: %.2f' % pred.mean())
+    difference = pred.mean() - train_df['SalePrice'].mean()
+    print('Difference in means is: %s' % difference)
+    if np.abs(difference) > 5000:
+        print('IMPORTANT: There is something wrong with your predictions!!!')
     plt.show()
