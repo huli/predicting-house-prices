@@ -8,6 +8,41 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import Imputer
 from sklearn.model_selection import train_test_split
 
+from sklearn.base import TransformerMixin, BaseEstimator
+from sklearn.pipeline import Pipeline, FeatureUnion, _transform_one
+from sklearn.externals.joblib import Parallel, delayed
+
+class NoFitMixin:
+    def fit(self, X, y=None):
+        return self
+
+# class DFTransform(BaseEstimator, TransformerMixin, NoFitMixin):
+class DFTransform(BaseEstimator, TransformerMixin, NoFitMixin):
+    def __init__(self, func, copy=False):
+        self.func = func
+        self.copy = copy
+
+    def transform(self, X):
+        X_ = X if not self.copy else X.copy()
+        return self.func(X_)
+    
+class DFFeatureUnion(FeatureUnion):
+    def fit_transform(self, X, y=None, **fit_params):
+        # non-optimized default implementation; override when a better
+        # method is possible
+        if y is None:
+            # fit method of arity 1 (unsupervised transformation)
+            return self.fit(X, **fit_params).transform(X)
+        else:
+            # fit method of arity 2 (supervised transformation)
+            return self.fit(X, y, **fit_params).transform(X)
+
+    def transform(self, X):
+        Xs = Parallel(n_jobs=self.n_jobs)(
+            delayed(_transform_one)(trans, weight, X)
+            for _, trans, weight in self._iter())
+        return pd.concat(Xs, axis=1, join='inner')
+
 def prepare_inputs(X_val, y_val):
     outliers = X_val[X_val['GrLivArea'] >= 4000]
     return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
@@ -122,6 +157,10 @@ def rmse_log(y_actual, y_pred):
 
 def rmse(y_actual, y_pred):
     return math.sqrt(mean_squared_error(y_actual, y_pred))
+
+def prepare_inputs(X_val, y_val):
+    outliers = X_val[X_val['GrLivArea'] >= 4000]
+    return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
 
 def print_benchmark(y_actual, y_predicted, log_transform = False):
     print('R2-score: %s' % r2_score(y_actual, y_predicted))
