@@ -50,7 +50,7 @@ def prepare_inputs(X_val, y_val):
     outliers = X_val[X_val['GrLivArea'] >= 4000]
     return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
 
-def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33):
+def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, show_plot=True):
     
     print('Loading training data...')
     train_df =  pd.read_csv('data/train.csv')
@@ -75,7 +75,8 @@ def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33):
     
     print('Create predictions...(test)')
     predictions = estimation_pipeline.predict(X_test)
-    plot_benchmark(X_test, y_test, predictions)
+    if show_plot:
+        plot_benchmark(X_test, y_test, predictions)
     
     print('Fitting the pipeline to all the data...')
     X_all = train_df.drop(['SalePrice','Id'], axis=1)
