@@ -12,6 +12,9 @@ from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline, FeatureUnion, _transform_one
 from sklearn.externals.joblib import Parallel, delayed
 
+def rmse_score(y_t, y_pred):
+    return math.sqrt(mean_squared_error(y_t, y_pred))
+
 class NoFitMixin:
     def fit(self, X, y=None):
         return self
