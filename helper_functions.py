@@ -167,6 +167,7 @@ def rmse_log(y_actual, y_pred):
 def rmse(y_actual, y_pred):
     return math.sqrt(mean_squared_error(y_actual, y_pred))
 
+# Removes outliers and normalized distribution of target variable
 def prepare_inputs(X_val, y_val):
     outliers = X_val[X_val['GrLivArea'] >= 4000]
     return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
