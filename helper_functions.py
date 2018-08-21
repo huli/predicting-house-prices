@@ -141,6 +141,11 @@ def impute_categorical(X_val):
         X_new[col] = X_new[col].fillna('None')
     return X_new
 
+def execute_pipeline(transformation_pipeline, fitted_pipeline, transformed_x):
+    predictions = fitted_pipeline.predict(transformed_x)
+    draw_sanity_check(predictions, False)
+    return predictions
+
 from sklearn.preprocessing import LabelEncoder
 def encode_ordinals(X_val):
     X_new = X_val.copy()
