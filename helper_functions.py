@@ -11,6 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline, FeatureUnion, _transform_one
 from sklearn.externals.joblib import Parallel, delayed
+import locale
 
 def rmse_score(y_t, y_pred):
     return math.sqrt(mean_squared_error(y_t, y_pred))
@@ -157,9 +158,10 @@ def impute_categorical(X_val):
         X_new[col] = X_new[col].fillna('None')
     return X_new
 
-def execute_pipeline(transformation_pipeline, fitted_pipeline, transformed_x):
+def execute_pipeline(transformation_pipeline, fitted_pipeline, transformed_x, show_plot=True):
     predictions = fitted_pipeline.predict(transformed_x)
-    draw_sanity_check(predictions, False)
+    if show_plot:
+        draw_sanity_check(predictions, False)
     return predictions
 
 def encode_ordinals(X_val):
@@ -217,12 +219,19 @@ def write_submission(pred, in_dollars=False):
     print('File written to %s' % file_path)
     
 def draw_sanity_check(pred, in_dollars = True):
+    
+    locale.setlocale(locale.LC_ALL, 'de-CH')
+    thousand_formatter = plt.FuncFormatter(lambda x, _ : locale.format("%d", x, grouping=True))
     if in_dollars == False:
         pred = np.expm1(pred)
     train_df = pd.read_csv('data/train.csv')
     test_df = pd.read_csv('data/test.csv')
-    fig, ax = plt.subplots(1, figsize=(8, 6), sharey=True)
+    fig, ax = plt.subplots(1, figsize=(6, 5), sharey=True)
     ax.scatter(train_df['GrLivArea'], train_df['SalePrice'], alpha=.4)
+    ax.yaxis.set_major_formatter(thousand_formatter)
+    ax.xaxis.set_major_formatter(thousand_formatter)
+    ax.set_ylabel('Price in $')
+    ax.set_xlabel('Living space (squae feet)')
     ax.set_title('Baseline vs Prediction')
     ax.scatter(test_df['GrLivArea'], pred, alpha=.4)
     print('Mean of Salesprice in Training-Data: %.2f' % train_df['SalePrice'].mean())
