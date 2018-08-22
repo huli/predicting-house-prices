@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import Imputer
 from sklearn.model_selection import train_test_split
-
+from sklearn.preprocessing import LabelEncoder
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline, FeatureUnion, _transform_one
 from sklearn.externals.joblib import Parallel, delayed
@@ -77,6 +77,8 @@ def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, 
     predictions = estimation_pipeline.predict(X_test)
     if show_plot:
         plot_benchmark(X_test, y_test, predictions)
+    else:
+        print_benchmark(y_test, predictions)
     
     print('Fitting the pipeline to all the data...')
     X_all = train_df.drop(['SalePrice','Id'], axis=1)
@@ -99,10 +101,23 @@ def impute_special_cases(X_val):
 
     return X_new
 
+
+def fill_nans(X_val, mean_columns, zero_columns):
+    ''' Function which replaced the nans in the columns
+    with their corresponding median or zero '''
+    mean_imputer = Imputer(missing_values='NaN', strategy='mean', axis=0)
+    mean_imputer = mean_imputer.fit(X_val.loc[:, mean_columns])
+    X_new = X_val.copy()
+    X_new.loc[:, mean_columns] = mean_imputer.transform(X_val.loc[:, mean_columns])
+    X_new.loc[:, zero_columns] = X_new.loc[:, zero_columns].fillna(value=0)
+    return X_new
+
 def drop_features(X_val):
     return X_val.drop(['Utilities'], axis=1)
 
 def create_dummies(X_val):
+    ''' Function which creates dummy variables for all the categoricals
+    and hereby take possible resulting multi-collinearity into account'''
     print('Creating dummies...')
     print('Starting with input of shape: %s' % str(X_val.shape))
     X_new = X_val.copy()
@@ -147,7 +162,6 @@ def execute_pipeline(transformation_pipeline, fitted_pipeline, transformed_x):
     draw_sanity_check(predictions, False)
     return predictions
 
-from sklearn.preprocessing import LabelEncoder
 def encode_ordinals(X_val):
     X_new = X_val.copy()
     for col in ['FireplaceQu', 'BsmtQual', 'BsmtCond', 'GarageQual', 'GarageCond', 
