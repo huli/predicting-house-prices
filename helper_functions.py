@@ -126,6 +126,16 @@ def create_dummies(X_val):
     print('Returning output of shape: %s' % str(x_extended.shape))
     return x_extended
 
+def create_sellingage(df):
+    new_df = df.copy()
+    new_df['SellingAge'] = new_df['YrSold'] - new_df['YearRemodAdd']
+    return new_df
+
+def combined_livingspace(df):
+    new_df = df.copy()
+    new_df['TotalSF'] = new_df['TotalBsmtSF'] + new_df['GrLivArea']
+    return new_df
+
 def fill_numerical_nans(X_val):
     mean_columns = ['LotFrontage']
     zero_columns = ['MasVnrArea', 
