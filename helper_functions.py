@@ -12,6 +12,8 @@ from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline, FeatureUnion, _transform_one
 from sklearn.externals.joblib import Parallel, delayed
 import locale
+from scipy.stats import skew
+from scipy.special import boxcox1p
 
 def rmse_score(y_t, y_pred):
     return math.sqrt(mean_squared_error(y_t, y_pred))
@@ -220,8 +222,8 @@ def normalize_skewed_features(df):
     new_df = df.copy()
     numerical_features = new_df.select_dtypes(exclude=['object'])
     features_skewed = numerical_features.apply(lambda x: skew(x, nan_policy='omit')).sort_values(ascending=False)
-    skewness = pd.DataFrame({'Skew' :features_skewed})
-    highly_skewed_features = skewness.loc[abs(skewness['Skew']) > .8, :]
+    skewness = pd.DataFrame({'skew' :features_skewed})
+    highly_skewed_features = skewness.loc[abs(skewness['skew']) > .8, :]
     for feature in highly_skewed_features.index:
         new_df[feature] = boxcox1p(new_df[feature], 0.15)
     return new_df
@@ -238,7 +240,6 @@ def write_submission(pred, in_dollars=False):
     print('File written to %s' % file_path)
     
 def draw_sanity_check(pred, in_dollars = True):
-    
     locale.setlocale(locale.LC_ALL, 'de-CH')
     thousand_formatter = plt.FuncFormatter(lambda x, _ : locale.format("%d", x, grouping=True))
     if in_dollars == False:
