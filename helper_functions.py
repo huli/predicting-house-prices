@@ -179,8 +179,7 @@ def encode_ordinals(X_val):
     for col in ['FireplaceQu', 'BsmtQual', 'BsmtCond', 'GarageQual', 'GarageCond', 
         'ExterQual', 'ExterCond','HeatingQC', 'PoolQC', 'KitchenQual', 'BsmtFinType1', 
         'BsmtFinType2', 'Functional', 'Fence', 'BsmtExposure', 'GarageFinish', 'LandSlope',
-        'LotShape', 'PavedDrive', 'Street', 'Alley', 'CentralAir', 'MSSubClass', 'OverallCond', 
-        'YrSold', 'MoSold']:
+        'LotShape', 'PavedDrive', 'Street', 'Alley', 'CentralAir', 'MSSubClass', 'OverallCond']:
         encoder = LabelEncoder()
         encoder.fit(list(X_val[col].values))
         X_new[col] = encoder.transform(list(X_val[col].values))
@@ -217,6 +216,16 @@ def plot_benchmark(X_t, y_t, pred):
     plt.show()
     print_benchmark(y_t, pred)
     
+def normalize_skewed_features(df):
+    new_df = df.copy()
+    numerical_features = new_df.select_dtypes(exclude=['object'])
+    features_skewed = numerical_features.apply(lambda x: skew(x, nan_policy='omit')).sort_values(ascending=False)
+    skewness = pd.DataFrame({'Skew' :features_skewed})
+    highly_skewed_features = skewness.loc[abs(skewness['Skew']) > .8, :]
+    for feature in highly_skewed_features.index:
+        new_df[feature] = boxcox1p(new_df[feature], 0.15)
+    return new_df
+
 def write_submission(pred, in_dollars=False):
     df = pd.read_csv('data/test.csv')
     if in_dollars == False:
@@ -241,7 +250,7 @@ def draw_sanity_check(pred, in_dollars = True):
     ax.yaxis.set_major_formatter(thousand_formatter)
     ax.xaxis.set_major_formatter(thousand_formatter)
     ax.set_ylabel('Price in $')
-    ax.set_xlabel('Living space (squae feet)')
+    ax.set_xlabel('Living space (square feet)')
     ax.set_title('Baseline vs Prediction')
     ax.scatter(test_df['GrLivArea'], pred, alpha=.4)
     print('Mean of Salesprice in Training-Data: %.2f' % train_df['SalePrice'].mean())
