@@ -5,11 +5,9 @@
 The project is a model for a the kaggle competition:
 
 **House Prices: Advanced Regression Techniques**
-
 https://www.kaggle.com/c/house-prices-advanced-regression-techniques
-
-Required is nothing more than common data science and machine learning 
-libraries like (numpy, scipy, sklearn, xgboost eg.)
+_Required is nothing more than common data science and machine learning 
+libraries like (numpy, scipy, sklearn, xgboost eg.)_
 
 Data exploration and model definitions:
 * **walkthrough.ipynb** _(Process of exploration and first models)_
