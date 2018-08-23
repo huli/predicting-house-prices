@@ -6,7 +6,8 @@ The project is a predictive model for a kaggle competition:
 
 **House Prices: Advanced Regression Techniques**
 
-(https://www.kaggle.com/c/house-prices-advanced-regression-techniques)
+https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+
 
 Data exploration and model definitions:
 * **walkthrough.ipynb** _(Process of exploration and first models)_
