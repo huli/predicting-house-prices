@@ -4,7 +4,7 @@
 
 Data exploration and model definitions:
 * **walkthrough.ipynb** _(Process of exploration and first models)_
-* **benchmark_model.ipynb** _(Benchmark model for comparision)_
+* **benchmark_model.ipynb** _(Benchmark model for comparison)_
 * **neural_network.ipynb** _(Neural Network with KerasRegressor)_
 * **stacking_with_nn.ipynb** _(Stacking model with blending)_
 * **final_model.ipynb** _(Final model for submission)_
