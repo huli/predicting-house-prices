@@ -1,4 +1,4 @@
-# Advanced regression with ensembles and stacking
+# Predicting Sales Prices for Houses in Ames, Iowa
 
 ### Capstone Project of the Udacity Machine Learning Nanodegree
 
