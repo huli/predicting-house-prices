@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+""" Helper Functions
+
+Reason Contains various often used function for the notebook files.
+Author: Christoph Hilty
+Date: 23.08.2018
+
+"""
+
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 import numpy as np
@@ -15,15 +24,20 @@ import locale
 from scipy.stats import skew
 from scipy.special import boxcox1p
 
+
 def rmse_score(y_t, y_pred):
+    ''' Function which returs the root mean 
+    squared errorof the both vectors '''
     return math.sqrt(mean_squared_error(y_t, y_pred))
 
+
 class NoFitMixin:
+    ''' Default mixing which does nothing at all '''
     def fit(self, X, y=None):
         return self
 
-# class DFTransform(BaseEstimator, TransformerMixin, NoFitMixin):
 class DFTransform(BaseEstimator, TransformerMixin, NoFitMixin):
+    ''' Handles the use of data sets in sklearn pipelines '''
     def __init__(self, func, copy=False):
         self.func = func
         self.copy = copy
@@ -32,29 +46,19 @@ class DFTransform(BaseEstimator, TransformerMixin, NoFitMixin):
         X_ = X if not self.copy else X.copy()
         return self.func(X_)
     
-class DFFeatureUnion(FeatureUnion):
-    def fit_transform(self, X, y=None, **fit_params):
-        # non-optimized default implementation; override when a better
-        # method is possible
-        if y is None:
-            # fit method of arity 1 (unsupervised transformation)
-            return self.fit(X, **fit_params).transform(X)
-        else:
-            # fit method of arity 2 (supervised transformation)
-            return self.fit(X, y, **fit_params).transform(X)
-
-    def transform(self, X):
-        Xs = Parallel(n_jobs=self.n_jobs)(
-            delayed(_transform_one)(trans, weight, X)
-            for _, trans, weight in self._iter())
-        return pd.concat(Xs, axis=1, join='inner')
-
 def prepare_inputs(X_val, y_val):
+    ''' Function for removing the outliers in the data as 
+    well as log transforming the target variable '''
     outliers = X_val[X_val['GrLivArea'] >= 4000]
     return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
 
+
 def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, show_plot=True):
+    ''' Function which executes both the transformation pipeline
+    and the estimation pipeline on a train test split as well as
+    on the complete training set for submission '''
     
+    # Loading data and removing outliers and id column
     print('Loading training data...')
     train_df =  pd.read_csv('data/train.csv')
     X_train = train_df.drop(['SalePrice','Id'], axis=1)
@@ -62,20 +66,25 @@ def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, 
     X_test = pd.read_csv('data/test.csv').drop(['Id'], axis=1)
     X_train, y_train = prepare_inputs(X_train, y_train)
     
+    # Concating  and transforming training and testing set to have a unique 
+    # transformation for all the steps (training, testing and submission)
     print('Transforming input...')
     X_combined = pd.concat((X_train, X_test)).reset_index(drop=True) 
     X_tranformed = transformation_pipeline.fit_transform(X_combined)
 
+    # Create train and test split and fitting pipeline to the training set
     print('Create train/test split')
     X_train_trans = X_tranformed[:X_train.shape[0]] 
     X_test_trans = X_tranformed[X_train.shape[0]:]
     X_train, X_test, y_train, y_test = train_test_split(X_train_trans, y_train, test_size=size_test, random_state=42)
     estimation_pipeline.fit(X_train, y_train)
     
+    # Create predictions on the training set (biased)
     print('Create predictions...(train)')
     predictions = estimation_pipeline.predict(X_train)
     print_benchmark(y_train, predictions)
     
+    # Create predictions on the test set 
     print('Create predictions...(test)')
     predictions = estimation_pipeline.predict(X_test)
     if show_plot:
@@ -83,6 +92,8 @@ def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, 
     else:
         print_benchmark(y_test, predictions)
     
+    # Now the estimations pipeline is applied over the
+    # whole training set for later submission
     print('Fitting the pipeline to all the data...')
     X_all = train_df.drop(['SalePrice','Id'], axis=1)
     y_all = train_df['SalePrice']
