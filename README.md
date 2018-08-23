@@ -1,6 +1,15 @@
-# Advanced regression with ensembles
+# Advanced regression with ensembles and stacking
 
 ### Capstone Project of the Udacity Machine Learning Nanodegree
+
+The project is a model for a the kaggle competition:
+
+**House Prices: Advanced Regression Techniques**
+
+https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+
+Required is nothing more than common data science and machine learning 
+libraries like (numpy, scipy, sklearn, xgboost eg.)
 
 Data exploration and model definitions:
 * **walkthrough.ipynb** _(Process of exploration and first models)_
@@ -16,3 +25,4 @@ Data files:
 Supplementary files
 * unrefined\features_engineering.ipynb
 * unrefined\stacking_with_regressors.ipynb
+
