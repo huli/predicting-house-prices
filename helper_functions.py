@@ -5,6 +5,9 @@ Reason Contains various often used function for the notebook files.
 Author: Christoph Hilty
 Date: 23.08.2018
 
+TODO:
+* Remove first ununsed parameter of execute pipeline
+* Remove duplicate root mean squared error functions
 """
 
 from sklearn.metrics import r2_score
@@ -104,6 +107,7 @@ def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, 
     return (transformation_pipeline, estimation_pipeline, X_test_trans)
 
 def impute_special_cases(X_val):
+    ''' We handle some special cases of categorical nans '''
     X_new = X_val.copy()
     
     # According to documentation
@@ -126,9 +130,6 @@ def fill_nans(X_val, mean_columns, zero_columns):
     X_new.loc[:, zero_columns] = X_new.loc[:, zero_columns].fillna(value=0)
     return X_new
 
-def drop_features(X_val):
-    return X_val.drop(['Utilities'], axis=1)
-
 def create_dummies(X_val):
     ''' Function which creates dummy variables for all the categoricals
     and hereby take possible resulting multi-collinearity into account'''
@@ -140,16 +141,19 @@ def create_dummies(X_val):
     return x_extended
 
 def create_sellingage(df):
+    ''' Create a combined variable for the age of the house when sold '''
     new_df = df.copy()
     new_df['SellingAge'] = new_df['YrSold'] - new_df['YearRemodAdd']
     return new_df
 
 def combined_livingspace(df):
+    ''' Create combined variable for all the living space in the buildings '''
     new_df = df.copy()
     new_df['TotalSF'] = new_df['TotalBsmtSF'] + new_df['GrLivArea']
     return new_df
 
 def fill_numerical_nans(X_val):
+    ''' Fills nans in numerical features of the data set '''
     mean_columns = ['LotFrontage']
     zero_columns = ['MasVnrArea', 
                     'GarageYrBlt',
@@ -169,6 +173,7 @@ def fill_numerical_nans(X_val):
     return X_new
 
 def check_nans(X_val):
+    ''' Prints message if there are still nans in the data set '''
     null_columns = X_val.columns[X_val.isnull().any(axis=0)]
     if len(null_columns) > 0:
         print('There are still NaNs in the data!')
@@ -176,21 +181,26 @@ def check_nans(X_val):
     return X_val
 
 def impute_categorical(X_val):
+    ''' We impute special cases of categorical nans so that there
+    are not both nans and None's '''
     X_new = X_val.copy()
     for col in ['MasVnrType', 'GarageType', 'MiscFeature']:
         X_new[col] = X_new[col].fillna('None')
     return X_new
 
 def execute_pipeline(transformation_pipeline, fitted_pipeline, transformed_x, show_plot=True):
+    ''' Executed the fitted pipeline and returns predictions '''
     predictions = fitted_pipeline.predict(transformed_x)
     if show_plot:
         draw_sanity_check(predictions, False)
     return predictions
 
 def encode_ordinals(X_val):
+    ''' Method for label encoding the categorical variables
+    which might have meaning in the ordering '''
     X_new = X_val.copy()
-    for col in ['FireplaceQu', 'BsmtQual', 'BsmtCond', 'GarageQual', 'GarageCond', 
-        'ExterQual', 'ExterCond','HeatingQC', 'PoolQC', 'KitchenQual', 'BsmtFinType1', 
+    for col in ['FireplaceQu', 'BsmtQual', 'BsmtCond', 
+        'ExterQual', 'ExterCond','HeatingQC', 'PoolQC', 'GarageQual', 'GarageCond', 'KitchenQual', 'BsmtFinType1', 
         'BsmtFinType2', 'Functional', 'Fence', 'BsmtExposure', 'GarageFinish', 'LandSlope',
         'LotShape', 'PavedDrive', 'Street', 'Alley', 'CentralAir', 'MSSubClass', 'OverallCond']:
         encoder = LabelEncoder()
@@ -199,10 +209,13 @@ def encode_ordinals(X_val):
     return X_new
 
 def rmse_log(y_actual, y_pred):
+    ''' Returns the root mean squared log error of the vectors '''
     assert y_pred.min() <= 0, "Negative price found in prediction! ¯\_(ツ)_/¯"
     return math.sqrt(mean_squared_error(np.log(y_pred), np.log(y_actual)))
 
 def rmse(y_actual, y_pred):
+    ''' Function which returs the root mean 
+    squared errorof the both vectors '''
     return math.sqrt(mean_squared_error(y_actual, y_pred))
 
 # Removes outliers and normalized distribution of target variable
@@ -211,6 +224,8 @@ def prepare_inputs(X_val, y_val):
     return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
 
 def print_benchmark(y_actual, y_predicted, log_transform = False):
+    ''' Prints root mean squared error of the vectors and
+    optionally performs a log transformation '''
     print('R2-score: %s' % r2_score(y_actual, y_predicted))
     if log_transform:
         print('RMSE (log): %s' % rmse(np.log1p(y_actual), np.log1p(y_predicted)))
@@ -218,6 +233,7 @@ def print_benchmark(y_actual, y_predicted, log_transform = False):
         print('RMSE (log): %s' % rmse(y_actual, y_predicted))
     
 def plot_benchmark(X_t, y_t, pred):
+    ''' Plots a benchmark for comparision '''
     train_df =  pd.read_csv('data/train.csv')
     fig, axes = plt.subplots(1, 2, figsize=(16, 7))
     axes[0].scatter(train_df['GrLivArea'], train_df['SalePrice'], alpha=.4)
@@ -230,6 +246,8 @@ def plot_benchmark(X_t, y_t, pred):
     print_benchmark(y_t, pred)
     
 def normalize_skewed_features(df):
+    ''' Does a box-cox transformation of features with
+    an absolute skew of greather than 0.8 '''
     new_df = df.copy()
     numerical_features = new_df.select_dtypes(exclude=['object'])
     features_skewed = numerical_features.apply(lambda x: skew(x, nan_policy='omit')).sort_values(ascending=False)
@@ -240,6 +258,8 @@ def normalize_skewed_features(df):
     return new_df
 
 def write_submission(pred, in_dollars=False):
+    ''' Writes a file for submission to kaggle and 
+    does some rudimentary asserts to prevent wrong submissions '''
     df = pd.read_csv('data/test.csv')
     if in_dollars == False:
         pred = np.expm1(pred)
@@ -251,6 +271,8 @@ def write_submission(pred, in_dollars=False):
     print('File written to %s' % file_path)
     
 def draw_sanity_check(pred, in_dollars = True):
+    ''' Perform a sanity check which performs the scatter plot
+    of the predictions with the scatter plot in the initial training set '''
     locale.setlocale(locale.LC_ALL, 'de-CH')
     thousand_formatter = plt.FuncFormatter(lambda x, _ : locale.format("%d", x, grouping=True))
     if in_dollars == False:
