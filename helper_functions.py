@@ -56,7 +56,7 @@ def prepare_inputs(X_val, y_val):
     return (X_val.drop(outliers.index), np.log1p(y_val.drop(outliers.index)))
 
 
-def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.33, show_plot=True):
+def train_pipeline(transformation_pipeline, estimation_pipeline, size_test=.3, show_plot=True):
     ''' Function which executes both the transformation pipeline
     and the estimation pipeline on a train test split as well as
     on the complete training set for submission '''
