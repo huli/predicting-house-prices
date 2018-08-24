@@ -1,10 +1,17 @@
-# Advanced regression with ensembles
+# Predicting Sales Prices for Houses in Ames, Iowa
 
 ### Capstone Project of the Udacity Machine Learning Nanodegree
 
+The project is a predictive model for a kaggle competition:
+
+**House Prices: Advanced Regression Techniques**
+
+https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+
+
 Data exploration and model definitions:
 * **walkthrough.ipynb** _(Process of exploration and first models)_
-* **benchmark_model.ipynb** _(Benchmark model for comparision)_
+* **benchmark_model.ipynb** _(Benchmark model for comparison)_
 * **neural_network.ipynb** _(Neural Network with KerasRegressor)_
 * **stacking_with_nn.ipynb** _(Stacking model with blending)_
 * **final_model.ipynb** _(Final model for submission)_
@@ -16,3 +23,6 @@ Data files:
 Supplementary files
 * unrefined\features_engineering.ipynb
 * unrefined\stacking_with_regressors.ipynb
+
+_(Required is nothing more than common data science and machine learning 
+libraries like (numpy, scipy, sklearn, xgboost eg.))_
