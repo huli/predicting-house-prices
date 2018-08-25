@@ -294,3 +294,34 @@ def draw_sanity_check(pred, in_dollars = True):
     if np.abs(difference) > 5000:
         print('IMPORTANT: There is something wrong with your predictions!!!')
     plt.show()
+    
+def plot_learning_curve(transformation_pipeline, estimation_pipeline):
+    ''' Plots a learning curve of the pipeline by
+    sequencially increasing the training size '''
+    train_df =  pd.read_csv('data/train.csv')
+    X_train = train_df.drop(['SalePrice','Id'], axis=1)
+    y_train = train_df['SalePrice']
+    X_test = pd.read_csv('data/test.csv').drop(['Id'], axis=1)
+    X_train, y_train = prepare_inputs(X_train, y_train)
+    X_train_trans = transformation_pipeline.fit_transform(X_train)
+    
+    X_train, X_valid, y_train, y_valid = train_test_split(X_train_trans, y_train, test_size=.3, random_state=42)
+    
+    train_errors, val_errors = [],[]
+    for m in range(1, len(X_train)):
+        estimation_pipeline.fit(X_train[:m], y_train[:m])
+        y_train_predict = estimation_pipeline.predict(X_train[:m])
+        y_valid_predict = estimation_pipeline.predict(X_valid)
+        
+        train_errors.append(math.sqrt(mean_squared_error(y_train_predict, y_train[:m])))
+        val_errors.append(math.sqrt(mean_squared_error(y_valid_predict, y_valid)))
+    
+    fig, ax = plt.subplots(1, figsize=(8, 7))
+    ax.plot(train_errors)
+    ax.plot(val_errors)
+    ax.set_xlabel('training size')
+    ax.set_ylabel('RMSE (log)')
+    ax.set_ylim([0, .6])
+    plt.title('Training curve')
+    plt.legend(['training', 'validation'])
+    plt.show()
